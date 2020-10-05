@@ -6,7 +6,7 @@ const config = require('./config');
 const contacts = require('./contacts/contacts.router');
 
 const app = express();
-const PORT = config.port || 5000;
+const PORT = config.port || 3000;
 
 morgan('tiny');
 app.use(cors());

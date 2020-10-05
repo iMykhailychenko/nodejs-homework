@@ -1,102 +1,89 @@
-const fsPromises = require('fs').promises;
-const path = require('path');
-const newContact = require('./contacts.modal');
+const Joi = require('joi');
+const contacts = require('./contacts.modal');
 
-const PATH = path.join(__dirname, '..', 'db', 'contacts.json');
+// validation shemas
+const postSchema = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string()
+    .email()
+    .required(),
+  phone: Joi.string()
+    .length(10)
+    .pattern(/^[0-9]+$/)
+    .required(),
+}).required();
 
-const listContacts = async () => {
+const patchSchema = Joi.object({
+  name: Joi.string(),
+  email: Joi.string().email(),
+  phone: Joi.string()
+    .length(10)
+    .pattern(/^[0-9]+$/),
+}).required();
+
+// controllers
+const getContacts = async (_, res) => {
   try {
-    return await fsPromises.readFile(PATH, 'utf8');
+    res.send(await contacts.listContacts());
   } catch (err) {
-    console.log(err);
-    throw new Error();
+    res.status(400).send({
+      massage: err.message ? err.message : 'Internal error',
+    });
   }
 };
 
-const getContactById = async contactId => {
+const getContactById = async (req, res) => {
   try {
-    const contacts = JSON.parse(await listContacts()).find(
-      contact => contact.id === contactId,
-    );
-    return contacts || 'Не найдено контактов по заданому id';
+    res.send(await contacts.getContactById(+req.params.contactId));
   } catch (err) {
-    console.log(err);
-    throw new Error();
+    res.status(400).send({
+      massage: err.message ? err.message : 'Internal error',
+    });
   }
 };
 
-const addContact = async params => {
-  const contact = newContact(params);
-
+const postContact = async (req, res) => {
   try {
-    const contacts = JSON.parse(await listContacts());
-    await fsPromises.writeFile(
-      PATH,
-      JSON.stringify([...contacts, contact], null, 2),
-    );
-    return contact;
+    const { error } = postSchema.validate(req.body);
+    if (error) throw new Error(error.details[0].message);
+
+    res.status(201).send(await contacts.postContact(req.body));
   } catch (err) {
-    console.log(err);
-    throw new Error();
+    res.status(400).send({
+      massage: err.message ? err.message : 'Internal error',
+    });
   }
 };
 
-const removeContact = async contactId => {
+const datateContact = async (req, res) => {
   try {
-    const contacts = JSON.parse(await listContacts());
-
-    if (!contacts.some(contact => contact.id === contactId)) throw new Error('Not found');
-
-    await fsPromises.writeFile(
-      PATH,
-      JSON.stringify(
-        contacts.filter(contact => contact.id !== contactId),
-        null,
-        2,
-      ),
-      'utf8',
-    );
-
-    return {
-      message: 'contact deleted',
-    };
+    res.send(await contacts.deleteContact(+req.params.contactId));
   } catch (err) {
-    throw new Error(err.message ? err.message : '');
+    res.status(err.message === 'Not found' ? 404 : 400).send({
+      massage: err.message ? err.message : 'Internal error',
+    });
   }
 };
 
-const updateContact = async (contactId, user) => {
-  console.log(contactId, user);
+const updateContact = async (req, res) => {
   try {
-    const contacts = JSON.parse(await listContacts());
-    const contactById = contacts.find(contact => contact.id === contactId);
-    if (!contactById) throw new Error('Not found');
+    if (!Object.keys(req.body).length) throw new Error('missing fields');
 
-    const contactsUpdated = {
-      ...contactById,
-      ...user,
-    };
+    const { error } = patchSchema.validate(req.body);
+    if (error) throw new Error(error.details[0].message);
 
-    await fsPromises.writeFile(
-      PATH,
-      JSON.stringify(
-        contacts.map(contact => (contact.id === contactsUpdated.id ? contactsUpdated : contact)),
-        null,
-        2,
-      ),
-      'utf8',
-    );
-
-    return contactsUpdated;
+    res.send(await contacts.updateContact(+req.params.contactId, req.body));
   } catch (err) {
-    throw new Error(err.message ? err.message : '');
+    res.status(err.message === 'Not found' ? 404 : 400).send({
+      massage: err.message ? err.message : 'Internal error',
+    });
   }
 };
 
 module.exports = {
-  listContacts,
+  getContacts,
   getContactById,
-  removeContact,
-  addContact,
+  postContact,
+  datateContact,
   updateContact,
 };

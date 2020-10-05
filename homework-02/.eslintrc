@@ -1,5 +1,6 @@
 {
-  "extends": "airbnb-base",
+  "extends": ["airbnb-base", "plugin:prettier/recommended"],
+  "plugins": ["prettier"],
   "env": {
     "es6": true,
     "browser": true,
@@ -7,15 +8,14 @@
     "jest": true
   },
   "rules": {
+    "prettier/prettier": "error",
     "no-console": "off",
     "no-shadow": [
       "error",
       {
         "builtinGlobals": false,
         "hoist": "never",
-        "allow": [
-          "err"
-        ]
+        "allow": ["err"]
       }
     ],
     "arrow-parens": [
