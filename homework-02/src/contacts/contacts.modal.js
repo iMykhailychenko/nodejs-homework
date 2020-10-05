@@ -16,7 +16,6 @@ const listContacts = async () => {
   try {
     return await fsPromises.readFile(PATH, 'utf8');
   } catch (err) {
-    console.log(err);
     throw new Error();
   }
 };
@@ -26,16 +25,15 @@ const getContactById = async contactId => {
     const contacts = JSON.parse(await listContacts()).find(
       contact => contact.id === contactId,
     );
-    return contacts || 'Не найдено контактов по заданому id';
+    if (!contacts) throw new Error('Not found');
+    return contacts;
   } catch (err) {
-    throw new Error();
+    throw new Error(err.message || '');
   }
 };
 
 const postContact = async params => {
   const contact = new Contacts(params);
-  console.log(contact);
-
   try {
     const contacts = JSON.parse(await listContacts());
     await fsPromises.writeFile(
@@ -69,12 +67,11 @@ const deleteContact = async contactId => {
       message: 'contact deleted',
     };
   } catch (err) {
-    throw new Error(err.message ? err.message : '');
+    throw new Error(err.message || '');
   }
 };
 
 const updateContact = async (contactId, user) => {
-  console.log(contactId, user);
   try {
     const contacts = JSON.parse(await listContacts());
     const contactById = contacts.find(contact => contact.id === contactId);
@@ -99,7 +96,7 @@ const updateContact = async (contactId, user) => {
 
     return contactsUpdated;
   } catch (err) {
-    throw new Error(err.message ? err.message : '');
+    throw new Error(err.message || '');
   }
 };
 

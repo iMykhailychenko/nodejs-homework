@@ -2,11 +2,11 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 
-const config = require('./config');
+const env = require('./config/env');
 const contacts = require('./contacts/contacts.router');
 
 const app = express();
-const PORT = config.port || 3000;
+const PORT = env.port || 3000;
 
 morgan('tiny');
 app.use(cors());
