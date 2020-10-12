@@ -10,6 +10,7 @@
   "rules": {
     "prettier/prettier": "error",
     "no-console": "off",
+    "class-methods-use-this": "off",
     "no-shadow": [
       "error",
       {
@@ -23,20 +24,6 @@
       "as-needed",
       {
         "requireForBlockBody": false
-      }
-    ],
-    "object-curly-newline": [
-      "error",
-      {
-        "ObjectExpression": "always",
-        "ObjectPattern": {
-          "multiline": true
-        },
-        "ImportDeclaration": "never",
-        "ExportDeclaration": {
-          "multiline": true,
-          "minProperties": 4
-        }
       }
     ]
   }
