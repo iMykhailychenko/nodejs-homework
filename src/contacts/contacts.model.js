@@ -1,71 +1,57 @@
-const mongodb = require('mongodb');
-const db = require('../db/connection');
+import mongoose from 'mongoose';
+import Joi from 'joi';
 
-class Contacts {
-  constructor({ name, email, phone, subscription, password }) {
-    this.name = name;
-    this.email = email;
-    this.phone = phone;
-    this.subscription = subscription;
-    this.password = password;
-    this.token = '';
-  }
-}
+const ContactScheme = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator(email) {
+        const { error } = Joi.string()
+          .email()
+          .validate(email);
 
-const listContacts = async (limit = 50) => {
-  try {
-    return await db
-      .collection('contacts')
-      .find({})
-      .limit(limit)
-      .toArray();
-  } catch (err) {
-    throw new Error();
-  }
-};
+        if (error) throw new Error('Email is not valid');
+      },
+    },
+  },
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator(phone) {
+        const { error } = Joi.string()
+          .length(10)
+          .pattern(/^[0-9]+$/)
+          .validate(phone);
 
-const getContactById = async contactId => {
-  try {
-    return await db
-      .collection('contacts')
-      .findOne({ _id: mongodb.ObjectId(contactId) });
-  } catch (err) {
-    throw new Error(err.message || '');
-  }
-};
+        if (error) throw new Error('Phone is not valid');
+      },
+    },
+  },
+  subscription: {
+    type: String,
+    required: true,
+    enum: ['free', 'pro', 'premium'],
+    default: 'free',
+  },
+  password: {
+    type: String,
+    required: true,
+    validate: {
+      validator(password) {
+        const { error } = Joi.string()
+          .pattern(/^[a-zA-Z0-9]{3,30}$/)
+          .validate(password);
 
-const postContact = async params => {
-  const contact = new Contacts(params);
-  try {
-    return await db.collection('contacts').insertOne(contact);
-  } catch (err) {
-    throw new Error();
-  }
-};
+        if (error) throw new Error('Password is not valid');
+      },
+    },
+  },
+  token: { type: String, default: '' },
+});
 
-const deleteContact = async contactId => {
-  try {
-    await db.collection('contacts').deleteOne({ _id: mongodb.ObjectId(contactId) });
-    return { message: 'contact deleted' };
-  } catch (err) {
-    throw new Error(err.message || '');
-  }
-};
-
-const updateContact = async (contactId, user) => {
-  try {
-    return await db
-      .collection('contacts')
-      .updateOne({ _id: mongodb.ObjectId(contactId) }, { $set: user });
-  } catch (err) {
-    throw new Error(err.message || '');
-  }
-};
-
-module.exports = {
-  listContacts,
-  getContactById,
-  deleteContact,
-  postContact,
-  updateContact,
-};
+export default mongoose.model('Contact', ContactScheme);
