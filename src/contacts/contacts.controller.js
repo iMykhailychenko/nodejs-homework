@@ -7,29 +7,29 @@ export const getContacts = errorWrapper(async (req, res) => {
 });
 
 export const getContactById = errorWrapper(async (req, res) => {
-  const constact = await ContactScheme.findById(req.params.contactId);
-  if (!constact) throw new Error('Not found');
-  res.send(constact);
+  const contact = await ContactScheme.findById(req.params.contactId);
+  if (!contact) throw new Error('Not found');
+  res.send(contact);
 });
 
 export const postContact = errorWrapper(async (req, res) => {
   res.status(201).send(await ContactScheme.create(req.body));
 });
 
-export const datateContact = errorWrapper(async (req, res) => {
-  const constact = await ContactScheme.findById(req.params.contactId);
-  if (!constact) throw new Error('Not found');
-  constact.remove();
+export const deleteContact = errorWrapper(async (req, res) => {
+  const contact = await ContactScheme.findById(req.params.contactId);
+  if (!contact) throw new Error('Not found');
+  await contact.remove();
   res.send({ message: 'contact deleted' });
 });
 
 export const updateContact = errorWrapper(async (req, res) => {
-  const constact = await ContactScheme.findByIdAndUpdate(
+  const contact = await ContactScheme.findByIdAndUpdate(
     req.params.contactId,
     { $set: req.body },
     { new: true },
   );
 
-  if (!constact) throw new Error('Not found');
-  res.send(constact);
+  if (!contact) throw new Error('Not found');
+  res.send(contact);
 });

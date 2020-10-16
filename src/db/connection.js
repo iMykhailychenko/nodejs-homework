@@ -14,7 +14,7 @@ class Connection {
   async connect() {
     const connectionState = new Promise(resolve => {
       mongoose.connection.on('error', e => {
-        console.log(e);
+        console.error(e);
         process.exit(1);
       });
       mongoose.connection.on('open', () => {
