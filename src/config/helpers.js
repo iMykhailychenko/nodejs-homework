@@ -1,4 +1,4 @@
-exports.errorWrapper = func => async (req, res, next) => {
+const errorWrapper = func => async (req, res, next) => {
   try {
     await func(req, res, next);
   } catch (err) {
@@ -7,3 +7,5 @@ exports.errorWrapper = func => async (req, res, next) => {
     });
   }
 };
+
+export default errorWrapper;

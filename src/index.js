@@ -1,19 +1,28 @@
-const express = require('express');
-const morgan = require('morgan');
-const cors = require('cors');
+import express from 'express';
+import morgan from 'morgan';
+import cors from 'cors';
 
-const env = require('./config/env');
-const contacts = require('./contacts/contacts.router');
+import connection from './db/connection';
+import env from './config/env';
+import contacts from './contacts/contacts.router';
 
 const app = express();
 const PORT = env.port || 3000;
 
-morgan('tiny');
-app.use(cors());
+async function main() {
+  await connection.connect();
 
-app.use(express.urlencoded());
-app.use(express.json());
+  morgan('tiny');
+  app.use(cors());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json());
 
-app.use('/api/contacts', contacts);
+  app.use('/api/contacts', contacts);
+  app.listen(PORT, () => console.log('Run on port:', PORT));
 
-app.listen(PORT, () => console.log('Run on port:', PORT));
+  process.on('SIGILL', () => {
+    connection.close();
+  });
+}
+
+main().catch(console.error);
