@@ -1,26 +1,32 @@
-// const { verifyToken } = require("../../services/token.service");
-// const User = require("../users/users.model");
+import jwt from 'jsonwebtoken';
+import { errorWrapper, newError } from '../config/helpers';
+import UserModel from '../api/users/users.model';
+import env from '../config/env';
 
-// export const checkAuthTokenMiddleware = async (req, res, next) => {
-//   try {
-//     const token = req.get("Authorization");
-//     if (!token) {
-//       return res.status(401).send("No token provided");
-//     }
-//     const data = await verifyToken(token);
-//     req.userId = data.id;
-//     const user = await User.findUserById(data.id);
-//     if (!user) {
-//       return res.status(401).send("Not authorized");
-//     }
+const checkToken = errorWrapper(async (req, _, next) => {
+  const token =
+    req.get('Authorization') && req.get('Authorization').replace('Bearer ', '');
+  if (!token) throw newError('No token provided', 401);
 
-//     req.user = {
-//       email: user.email,
-//       id: user._id,
-//       subscription: user.subscription,
-//     };
-//     next();
-//   } catch (e) {
-//     console.log("CheckAuthTokenMiddleware error message:", e.message);
-//   }
-// };
+  const { id } = await jwt.verify(token, env.auth.accesKey);
+  if (!id) throw newError('Not authorized', 401);
+
+  const user = await UserModel.findById(id);
+  if (!user) throw newError('Not authorized', 401);
+
+  const currentToken = user.tokens.find(data => data.token === token);
+  if (!currentToken) throw newError('Not authorized', 401);
+
+  if (new Date() > new Date(currentToken.expires)) {
+    user.tokens = user.tokens.filter(data => data.token !== token);
+    await user.save();
+
+    throw newError('Token expired', 403);
+  }
+
+  req.user = user;
+  req.token = token;
+  next();
+});
+
+export default checkToken;

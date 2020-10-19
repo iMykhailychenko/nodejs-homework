@@ -4,7 +4,9 @@ import cors from 'cors';
 
 import connection from './db/connection';
 import env from './config/env';
-import contacts from './contacts/contacts.router';
+import contacts from './api/contacts/contacts.router';
+import users from './api/users/users.router';
+import auth from './api/auth/auth.router';
 
 const app = express();
 const PORT = env.port || 3000;
@@ -18,6 +20,8 @@ async function main() {
   app.use(express.json());
 
   app.use('/api/contacts', contacts);
+  app.use('/api/users/', users);
+  app.use('/api/auth/', auth);
   app.listen(PORT, () => console.log('Run on port:', PORT));
 
   process.on('SIGILL', () => {
