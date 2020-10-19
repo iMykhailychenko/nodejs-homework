@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 import Joi from 'joi';
+import { newError } from '../../config/helpers';
 
 const ContactScheme = new mongoose.Schema({
   name: { type: String, required: true },
@@ -13,7 +15,7 @@ const ContactScheme = new mongoose.Schema({
           .email()
           .validate(email);
 
-        if (error) throw new Error('Email is not valid');
+        if (error) throw newError('Email is not valid', 422);
       },
     },
   },
@@ -28,7 +30,7 @@ const ContactScheme = new mongoose.Schema({
           .pattern(/^[0-9]+$/)
           .validate(phone);
 
-        if (error) throw new Error('Phone is not valid');
+        if (error) throw newError('Phone is not valid', 422);
       },
     },
   },
@@ -41,17 +43,11 @@ const ContactScheme = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    validate: {
-      validator(password) {
-        const { error } = Joi.string()
-          .pattern(/^[a-zA-Z0-9]{3,30}$/)
-          .validate(password);
-
-        if (error) throw new Error('Password is not valid');
-      },
-    },
+    min: 3,
   },
   token: { type: String, default: '' },
 });
+
+ContactScheme.plugin(mongoosePaginate);
 
 export default mongoose.model('Contact', ContactScheme);

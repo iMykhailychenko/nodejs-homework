@@ -11,6 +11,15 @@
     "prettier/prettier": "error",
     "no-console": "off",
     "class-methods-use-this": "off",
+    "no-return-await": "off",
+    "func-names": ["off"],
+    "consistent-return": ["error", { "treatUndefinedAsUnspecified": true }],
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allow": ["_id"]
+      }
+    ],
     "no-shadow": [
       "error",
       {
